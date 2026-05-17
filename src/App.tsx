@@ -14,7 +14,7 @@ export default function App() {
         <Route path="/paciente/:id" element={<PatientRecord />} />
         
         {/* La ruta '/exploracion' carga la cámara médica */}
-        <Route path="/exploracion" element={<ExplorationRoom />} />
+        <Route path="/exploracion/:id" element={<ExplorationRoom />} />
 
         <Route path="/proximamente" element={<ComingSoon />} />
         

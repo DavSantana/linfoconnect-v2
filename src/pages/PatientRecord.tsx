@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, Eye, FileText, Calendar, User, FileDown, Trash2 } from "lucide-react";
+import { ChevronLeft, FileText, Calendar, User, FileDown, Trash2, Play } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 
 export default function PatientRecord() {
   const navigate = useNavigate();
-  const { id } = useParams(); // Esto atrapa el ID de la URL
+  const { id } = useParams(); // Atrapamos el ID del paciente actual
   const [activeTab, setActiveTab] = useState("captures"); 
   const [patientData, setPatientData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,6 @@ export default function PatientRecord() {
     fetchPatient();
   }, [id]);
 
-  // Si está cargando, mostramos una pantalla limpia
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
@@ -42,7 +41,6 @@ export default function PatientRecord() {
     );
   }
 
-  // Si alguien pone un ID inventado en la URL
   if (!patientData) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
@@ -53,7 +51,6 @@ export default function PatientRecord() {
     );
   }
 
-  // Calculamos la edad rápidamente si hay fecha de nacimiento
   const birthYear = patientData.dateOfBirth ? new Date(patientData.dateOfBirth).getFullYear() : 0;
   const currentYear = new Date().getFullYear();
   const age = birthYear ? currentYear - birthYear : "--";
@@ -72,20 +69,32 @@ export default function PatientRecord() {
             <span>Volver al inicio</span>
           </button>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              {patientData.fullName}
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <User className="size-4" />
-                {patientData.nationalId}
-              </span>
-              <span className="text-slate-300">•</span>
-              <span>{age} años</span>
-              <span className="text-slate-300">•</span>
-              <span>Tel: {patientData.phoneNumber}</span>
+          {/* Nombre y Botón de Iniciar Estudio alineados perfectamente */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                {patientData.fullName}
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-sm">
+                <span className="flex items-center gap-1.5">
+                  <User className="size-4" />
+                  {patientData.nationalId}
+                </span>
+                <span className="text-slate-300">•</span>
+                <span>{age} años</span>
+                <span className="text-slate-300">•</span>
+                <span>Tel: {patientData.phoneNumber}</span>
+              </div>
             </div>
+
+            {/* ¡EL BOTÓN QUE FALTABA! */}
+            <button
+              onClick={() => navigate(`/exploracion/${id}`)}
+              className="flex items-center justify-center gap-2 h-12 px-6 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-2xl shadow-lg shadow-sky-500/20 transition-all duration-200 active:scale-98 text-sm shrink-0"
+            >
+              <Play className="size-4 fill-white" />
+              <span>Iniciar Estudio</span>
+            </button>
           </div>
         </header>
 
@@ -140,7 +149,7 @@ export default function PatientRecord() {
               </h2>
               <div className="border border-slate-200 bg-slate-50 rounded-3xl p-6">
                 <textarea
-                  className="w-full min-h-[300px] bg-transparent border-0 resize-none text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 text-base leading-relaxed"
+                  className="w-full min-h-[200px] bg-transparent border-0 resize-none text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-0 text-base leading-relaxed"
                   placeholder="Escriba las notas clínicas del paciente aquí..."
                   defaultValue={`Paciente: ${patientData.fullName}\nID: ${patientData.nationalId}\nCorreo: ${patientData.email}\n\nFecha de Registro: ${new Date(patientData.createdAt).toLocaleDateString()}`}
                 />
