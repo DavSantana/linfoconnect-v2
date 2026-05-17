@@ -2,8 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Camera, ArrowLeft, Radio, X } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom'; // <-- Añadimos los ganchos del enrutador
 
 export default function ExplorationRoom() {
+  const { id } = useParams(); // Atrapamos el ID de Michael Jordan
+  const navigate = useNavigate(); // Herramienta para volver atrás
+  
   const [laser780Active, setLaser780Active] = useState(false);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -45,7 +49,7 @@ export default function ExplorationRoom() {
     return () => { pcRef.current?.close(); };
   }, []);
 
-  // CONEXIÓN DE RED 2: Capturar y enviar foto al VPS (Opción A)
+  // CONEXIÓN DE RED 2: Capturar y enviar foto al VPS con ID del paciente
   const handleCaptureImage = async () => {
     if (!videoRef.current) return;
 
@@ -62,14 +66,17 @@ export default function ExplorationRoom() {
       // 2. Mostrar en la interfaz inmediatamente
       setCapturedImages(prev => [imageUrl, ...prev]);
 
-      // 3. Enviar silenciosamente al VPS por Tailscale
+      // 3. Enviar al VPS por Tailscale INCLUYENDO EL ID DEL PACIENTE
       try {
         const response = await fetch('http://100.110.8.70:8001/api/capturas', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ imagen_base64: imageUrl })
+          body: JSON.stringify({ 
+            imagen_base64: imageUrl,
+            paciente_id: id // <-- ¡AQUÍ ESTÁ LA MAGIA! FastAPI sabrá quién es.
+          })
         });
 
         if (response.ok) {
@@ -88,7 +95,10 @@ export default function ExplorationRoom() {
     <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100 relative">
       {/* Barra de Estado Superior */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-800">
-        <button className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors">
+        <button 
+          onClick={() => navigate(`/paciente/${id}`)} // <-- Ahora este botón sí vuelve al expediente
+          className="flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+        >
           <ArrowLeft className="w-5 h-5" />
           <span className="text-sm font-medium">Volver a la Ficha</span>
         </button>
@@ -130,7 +140,7 @@ export default function ExplorationRoom() {
             <span>Capturar Imagen</span>
           </button>
 
-          <button onClick={() => confirm('¿Finalizar?') && console.log('End')} className="px-4 py-2 rounded-lg font-medium text-sm border border-red-900/50 text-red-400 hover:bg-red-900/20 hover:border-red-700/50 transition-all duration-200">
+          <button onClick={() => navigate(`/paciente/${id}`)} className="px-4 py-2 rounded-lg font-medium text-sm border border-red-900/50 text-red-400 hover:bg-red-900/20 hover:border-red-700/50 transition-all duration-200">
             Finalizar Sesión
           </button>
         </div>
