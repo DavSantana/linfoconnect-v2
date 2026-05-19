@@ -1,5 +1,7 @@
-import { Home, User, FileText, Settings } from "lucide-react";
+import { Home, User, FileText, Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../config/firebase";
 
 interface SidebarProps {
   activeItem?: string;
@@ -27,6 +29,16 @@ export default function Sidebar({ activeItem = "home", onItemClick }: SidebarPro
       navigate("/"); // El Camino Feliz hacia el Dashboard
     } else {
       navigate("/proximamente"); // Todo lo demás rebota a la zona de construcción
+    }
+  };
+
+  // 3. Función destructora de sesión
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // No hace falta un navigate aquí, ProtectedRoute hará el trabajo sucio.
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
     }
   };
 
@@ -59,6 +71,18 @@ export default function Sidebar({ activeItem = "home", onItemClick }: SidebarPro
           );
         })}
       </nav>
+
+      {/* Botón de Cerrar Sesión (Anclado al fondo) */}
+      <div className="mt-auto flex flex-col items-center">
+        <button
+          onClick={handleLogout}
+          className="group flex h-12 w-12 flex-col items-center justify-center rounded-2xl text-slate-400 transition-all duration-200 hover:bg-red-50 hover:text-red-500"
+          title="Cerrar Sesión"
+        >
+          <LogOut className="h-5 w-5" strokeWidth={1.5} />
+          <span className="mt-1 text-[10px] font-medium">Salir</span>
+        </button>
+      </div>
     </aside>
   );
 }
